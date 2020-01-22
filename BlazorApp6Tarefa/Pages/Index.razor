@@ -1,7 +1,13 @@
 ﻿@page "/"
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code{
+    public class Tarefa /*classe modelo para tarefas*/
+    {
+        public Guid Id { get; set; } /*identificador da tarefa do tipo guid*/
+        public string Descrição { get; set; }  /*campo descricao da tarefa*/
+        public Boolean Concluída { get; set; } /*campo que indica estado da conclusao da tarefa*/
+        public DateTime DataCriação { get; set; } /*campo data da criacao da tarefa*/
+    }
+    private string NovaTarefa = ""; /*variavel utilizada para criar nova tarefa e para utilizar com o two way databinding*/
+    private List<Tarefa> tarefas = new List<Tarefa>();  /*instancia uma lista de tarefas, para mostrar uma lista de tarefas*/
+}
