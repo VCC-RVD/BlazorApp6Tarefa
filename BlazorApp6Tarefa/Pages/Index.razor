@@ -1,13 +1,97 @@
 ﻿@page "/"
+<!-- aqui usa a diretiva inject para usar os serviços do protocolo http via httpcliente, permite injetar serfiços nos componentes razor-->
+@inject HttpClient http
+<!-- se os dados ainda nao foram totalmente carregados mostrar a mensagem de carga-->
+<h1>TAREFAS</h1>
+<hr />
+@if (tarefas == null)
+{
+    <p>Carregando dados....</p>
+}
+else if (!tarefas.Any()) /*se tarefas for retornado vazia sem dados*/
+{
+
+    <p>tarefas inexistente ...@mensagem</p>
+}
+else  /*mostar os dados retornados das tarefas em uma grade html*/
+{
+    <table class="table">
+        <thead>
+            @*cabeçaho da grade(tabela)*@
+            <tr>
+                @*linha da grade(tabela)*@
+                        <th>DATA</th> @*coluna de cabeçalho da tabela(grade)*@
+                        <th>DESCRIÇÃO</th> @*coluna de cabeçalho da tabela(grade)*@
+                        <th>CONCLUÍDA:</th> @*coluna de cabeçalho da tabela(grade)*@
+                        <th>DELETAR:</th> @*coluna de cabeçalho da tabela(grade)*@
+                    </tr>
+
+        </thead>
+        <tbody>
+            @*corpo da grade(tabela)*@
+            @foreach (var item in tarefas)@*loop que percorre toda a  lista de tarefas retornada e mostra cada tarefa na grade*@
+            {
+            <tr>
+                @*linha da grade(tabela)*@
+
+                        <td>@item.datacriacao </td> @*coluna de dados da linha da grade(tabela)*@
+                        <td>@item.descricao </td> @*coluna de dados da linha da grade(tabela)*@
+                        <td><input type="checkbox" @bind="item.concluida" /> @item.concluida </td> @*coluna de dados da linha da grade(tabela)*@
+                        <td><button @onclick="@(()=>RemoveTarefa(item.id))"> <i class="oi oi-trash"></i></button>  </td> @*coluna com botao da linha da grade(tabela)*@
+                    </tr>
+            }
+        </tbody>
+    </table>
+}
+@if (tarefas != null)
+{
+    <div class="form-group">
+        <!-- essa div cria um formulario atravez da classe css-->
+        <label>Tarefa</label> <!-- esse rotulo mostra o titulo do campo-->
+        <input type="text" placeholder="informe a tarefa veio" @bind="NovaTarefa" /> <!--aqui cria a caixa de texto do tipo texto e vincula o conteudo na variavel "NovaTarefa"-->
+        <button class="btn btn-primary" @onclick="AdicionarTarefa">Registrar nova tarefa</button> <!--cria o botao e vincula ao evento onclick chamado "adicionarTarefa"-->
+    </div>
+}
 
 @code{
+    //metodo(evento) que faz parte do ciclo de vida do componente razor index(pagina) toda
+    //vez que o componente for carregado esse evento vai ser executado
+    string mensagem = "nao entrou";
+    protected override async Task OnInitializedAsync()
+    {
+        mensagem = "entrou aqui";
+        //metodos do serviço http que retorna uma lista de tarefas do arquivo json que esta na pasta dados no wwwroot
+        tarefas = await http.GetJsonAsync<List<Tarefa>>("dados/Tarefas.json");
+
+        //toda vez que houver um metodo que vai demorar pra terminar sua execução, fazer uso de  metodos async await
+
+    }
     public class Tarefa /*classe modelo para tarefas*/
     {
-        public Guid Id { get; set; } /*identificador da tarefa do tipo guid*/
-        public string Descrição { get; set; }  /*campo descricao da tarefa*/
-        public Boolean Concluída { get; set; } /*campo que indica estado da conclusao da tarefa*/
-        public DateTime DataCriação { get; set; } /*campo data da criacao da tarefa*/
+        //public Guid Id { get; set; } /*identificador da tarefa do tipo guid*/
+        public Guid id { get; set; }
+        public string descricao { get; set; }  /*campo descricao da tarefa*/
+        public Boolean concluida { get; set; } /*campo que indica estado da conclusao da tarefa*/
+        public DateTime datacriacao { get; set; } /*campo data da criacao da tarefa*/
     }
     private string NovaTarefa = ""; /*variavel utilizada para criar nova tarefa e para utilizar com o two way databinding*/
     private List<Tarefa> tarefas = new List<Tarefa>();  /*instancia uma lista de tarefas, para mostrar uma lista de tarefas*/
+    void AdicionarTarefa() /*metodo que adiciona uma nova tarefa*/
+    {
+        if (!String.IsNullOrWhiteSpace(NovaTarefa))
+        {
+            tarefas.Add(new Tarefa
+            {
+                datacriacao = DateTime.Now,
+                descricao = "NOVA TAREFA",
+                id = Guid.NewGuid()
+
+            });
+        }
+        NovaTarefa = "";
+    }
+    void RemoveTarefa(Guid id)
+    {
+        tarefas.Remove(tarefas.First(x => x.id == id));
+    }
 }
